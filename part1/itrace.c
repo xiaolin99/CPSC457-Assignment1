@@ -108,7 +108,7 @@ static void handle_singelstep() {
   ptrace(PTRACE_GETREGS, tr_pid, NULL, &regfile);
   unsigned long addr = regfile.eip;
   fprintf(stdout, "Address = 0x%08lx\n", addr);
-  // 32bit system have instruction length upto 6 bytes? therefore "long long"
+  // x86 system have instruction length upto 15 bytes, but ptrace only return 4bytes, so this is an approximation
   unsigned long long data = ptrace(PTRACE_PEEKTEXT, tr_pid, addr, NULL);
   fprintf(stdout, "Data = 0x%016llx\n", data);
   ud_t ud_obj;
@@ -269,12 +269,10 @@ do_sniff()
 }
 
 /**
- * ./snyfer -p [PID]
+ * ./itrace -p [PID]
  *
- * opens an interactive session where you can re-write arguments to
- * system calls of the traced process. Its default mode is simply to
- * print the syscall number and arg values.
- *
+ * opens an interactive session where you can trace a process single-step
+ * the instructions will be disassembled via udis86
  *
  */
 int main(int argc,
