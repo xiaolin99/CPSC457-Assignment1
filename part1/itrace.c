@@ -100,28 +100,30 @@ init_attach(char* tpid)
   return;
 }
 
-// function to read and disassemble one instrution single-step
+// Function to read and disassemble one instrution after ptrace stopped on singlestep
+// by Xiao Lin
+// reference: http://www.aryweb.nl/2013/05/25/ptrace-timing-analysis-by-disassembling/
 static void handle_singelstep() {
-  //reference: http://www.aryweb.nl/2013/05/25/ptrace-timing-analysis-by-disassembling/
-  //struct pt_regs regfile; //borrowed from sys/user.h from GDB
   struct user_regs_struct regfile;
   ptrace(PTRACE_GETREGS, tr_pid, NULL, &regfile);
   unsigned long addr = regfile.eip;
   fprintf(stdout, "Address = 0x%08lx\n", addr);
-  unsigned long data = ptrace(PTRACE_PEEKTEXT, tr_pid, addr, NULL);
-  fprintf(stdout, "Instruction = 0x%08lx\n", data);
+  // 32bit system have instruction length upto 6 bytes? therefore "long long"
+  unsigned long long data = ptrace(PTRACE_PEEKTEXT, tr_pid, addr, NULL);
+  fprintf(stdout, "Data = 0x%016llx\n", data);
   ud_t ud_obj;
-  unsigned char buff[4];
-  memcpy(buff, (char*)&data, sizeof(int));
+  unsigned char buff[8];
+  memcpy(buff, (char*)&data, sizeof(long long));
 
+  // setup udis86
   ud_init(&ud_obj);
-  ud_set_input_buffer(&ud_obj, buff, 32);
   ud_set_mode(&ud_obj, 32);
   ud_set_syntax(&ud_obj, UD_SYN_INTEL);
+  ud_set_input_buffer(&ud_obj, buff, 8);
 
-  // ud_disassemble fills the ud_obj struct with data
+  // disassemble and print
   if (ud_disassemble(&ud_obj) != 0) {
-    printf("Disassemble:    %s\n", ud_insn_asm(&ud_obj));
+    printf("Disassemble:  %s  %s\n", ud_insn_hex(&ud_obj), ud_insn_asm(&ud_obj));
   }
 
   return;
