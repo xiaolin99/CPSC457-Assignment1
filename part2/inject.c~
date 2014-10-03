@@ -11,49 +11,83 @@
 #include <asm/ptrace.h>
 #include <udis86.h>
 
+// some offsets in ELF
 #define L_ENDIAN 0x01 // LSB to the right
 #define B_ENDIAN 0x10 // LSB to the left
 #define LOC_ENDIAN 0x5 // Endianness 1 byte
+#define LOC_ENTRY 0x18 // Execution entry 4 bytes (mem location for _start)
+#define LEN_LOC_ENTRY 4
 #define LOC_PH 0x1C // Program header start 4 bytes
+#define LEN_LOC_PH 4
 #define LOC_SH 0x20 // Section header start 4 bytes
+#define LEN_LOC_SH 4
 #define SIZE_PH 0x2A // Program header size 2 bytes
-#define SIZE_SH 0x2E // Section header size 2 bytes
+#define LEN_SIZE_PH 2
 #define NUM_PH 0x2C // num entries in Program header 2 bytes
+#define LEN_NUM_PH 2
+#define SIZE_SH 0x2E // Section header size 2 bytes
+#define LEN_SIZE_SH 2
 #define NUM_SH 0x30 // num entries in Section header 2 bytes
+#define LEN_NUM_SH 2
 #define IDX_SNAME 0x32 // index of section header entry that contain section names 2 bytes 
+#define LEN_IDX_SNAME 2
 
-0x1C 	0x20 	4 	8 	e_phoff 	Points to the start of the program header table. It usually follows the file header immediately making the offset 0x40 for 64-bit ELF executables.
-0x20 	0x28 	4 	8 	e_shoff 	Points to the start of the section header table.
-0x24 	0x30 	4 	e_flags 	Interpretation of this field depends on the target architecture.
-0x28 	0x34 	2 	e_ehsize 	Contains the size of this header, normally 64 bytes for 64-bit and 52 for 32-bit format.
-0x2A 	0x36 	2 	e_phentsize 	Contains the size of a program header table entry.
-0x2C 	0x38 	2 	e_phnum 	Contains the number of entries in the program header table.
-0x2E 	0x3A 	2 	e_shentsize 	Contains the size of a section header table entry.
-0x30 	0x3C 	2 	e_shnum 	Contains the number of entries in the section header table.
-0x32 	0x3E 	2 	e_shstrndx 	Contains index of the section header table entry that contains the section names.
+
 
 int main(int argc, char* argv[])
 {
   FILE *target;
-  target = fopen("./a.out", "a+");
+  target = fopen(argv[1], "a+");
   if (!target) {
     printf("unable to open file");
     return 1;
   }
-  unsigned char buff;
+  long buff = 0;
   unsigned long location = 0;
   unsigned long target_size = 0; 
   fseek (target , 0 , SEEK_END);
   target_size = ftell (target);
   rewind (target);
-  printf("target size: %ld Bytes\n", target_size);
+  
   int i;
-  for (i = 0; i < target_size; i ++) {
+  for (i = 0; i*4 < target_size; i ++) {
     location = ftell(target);
     printf("%08lx: ", location);
-    fread(&buff, 1, 1, target);
-    printf("%02x\n", (unsigned int)buff);
+    buff = 0;
+    fread(&buff, 1, 4, target);
+    printf("%08lx  ", buff);
+//    char str[5];
+//    str[0] = buff&0xFF000000 >> 24;
+//    str[1] = buff&0x00FF0000 >> 16;
+//    str[2] = buff&0x0000FF00 >> 8;
+//    str[3] = buff&0x000000FF;
+//    str[4] = '\0';
+    unsigned char *str = (unsigned char*)&buff;
+    printf("%s\n", str); 
   }
+  printf("target size: %ld Bytes\n", target_size);
+
+  buff = 0;
+  fseek(target, LOC_ENTRY, 0);
+  fread(&buff, 1, LEN_LOC_ENTRY, target);
+  printf("ENTRY = %08lx\n", buff);
+
+  buff = 0;
+  fseek(target, LOC_PH, 0);
+  fread(&buff, 1, LEN_LOC_PH, target);
+  printf("PH offset = %08lx\n", buff);
+
+  buff = 0;
+  fseek(target, LOC_SH, 0);
+  fread(&buff, 1, LEN_LOC_SH, target);
+  printf("SH offset = %08lx\n", buff);
+  fseek(target, buff, 0);
+
+
+  buff = 0;
+  fseek(target, IDX_SNAME, 0);
+  fread(&buff, 1, LEN_IDX_SNAME, target);
+  printf("Index of SH name = %08lx\n", buff);
 
   fclose(target);
 
