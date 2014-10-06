@@ -56,7 +56,13 @@ int main(int argc, char* argv[])
     buff = 0;
     fread(&buff, 1, 4, target);
     printf("%08lx  ", buff);
+    int k;
     unsigned char *str = (unsigned char*)&buff;
+    for (k = 0; k < 4; k ++) {
+      if(str[k] < 32 || str[k] > 0x7e) str[k] = 0x2e;
+    }
+    str[4] = '\0';
+    
     printf("%s\n", str); 
   }
   printf("target size: %ld Bytes\n", target_size);
@@ -71,12 +77,64 @@ int main(int argc, char* argv[])
   fread(&buff, 1, LEN_LOC_PH, target);
   printf("PH offset = %08lx\n", buff);
 
+
+  unsigned long ph = buff;
+
+
+  buff = 0;
+  fseek(target, SIZE_PH, 0);
+  fread(&buff, 1, LEN_SIZE_PH, target);
+  printf("PH entry size = %08lx\n", buff);
+  
+
+
+  buff = 0;
+  fseek(target, NUM_PH, 0);
+  fread(&buff, 1, LEN_NUM_PH, target);
+  printf("PH num entries = %08lx\n", buff);
+  unsigned long ph_num = buff;
+
+  int n;
+  for (n = 0; n < ph_num; n ++) {
+    ph = ph + n * 0x20;
+    printf("Section %d:\n", n+1);
+    fseek(target, ph+4, 0);
+    fread(&buff, 1, 4, target);
+    printf(" offset = %lx ", buff);
+    fseek(target, ph+8, 0);
+    fread(&buff, 1, 4, target);
+    printf(" v_addr = %lx ", buff);
+    fseek(target, ph+12, 0);
+    fread(&buff, 1, 4, target);
+    printf(" p_addr = %lx ", buff);
+    fseek(target, ph+16, 0);
+    fread(&buff, 1, 4, target);
+    printf(" file_size = %lx ", buff);
+    fseek(target, ph+20, 0);
+    fread(&buff, 1, 4, target);
+    printf(" mem_size = %lx\n", buff);
+
+    
+    
+  } 
+
   buff = 0;
   fseek(target, LOC_SH, 0);
   fread(&buff, 1, LEN_LOC_SH, target);
   printf("SH offset = %08lx\n", buff);
   fseek(target, buff, 0);
-
+  
+  buff = 0;
+  fseek(target, SIZE_SH, 0);
+  fread(&buff, 1, LEN_SIZE_SH, target);
+  printf("SH entry size = %08lx\n", buff);
+  fseek(target, buff, 0);
+ 
+  buff = 0;
+  fseek(target, NUM_SH, 0);
+  fread(&buff, 1, LEN_NUM_SH, target);
+  printf("SH num entries = %08lx\n", buff);
+  fseek(target, buff, 0);
 
   buff = 0;
   fseek(target, IDX_SNAME, 0);
