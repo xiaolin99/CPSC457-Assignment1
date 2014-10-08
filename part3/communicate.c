@@ -1,3 +1,10 @@
+/*
+CPSC 457 Fall2014 HW1 - Part3
+by Xiao Lin
+Reference:
+- LKM example (tutorial handout)
+- http://linuxgazette.net/133/saha.html
+*/
 #include <linux/fs.h>
 #include <linux/miscdevice.h>
 #include <linux/kernel.h>
@@ -8,9 +15,11 @@
 #include <linux/vmalloc.h>
 #include <linux/errno.h>
 
+
+// define device
 static struct miscdevice communicate_dev;
 
-
+// define read operations
 static ssize_t communicate_read(struct file *file, char *buf, size_t count, loff_t *ppos) {
   struct task_struct *task;
   unsigned int crc32_checksum;
@@ -23,7 +32,9 @@ static ssize_t communicate_read(struct file *file, char *buf, size_t count, loff
     printk("Failed to allocate memory for read() of communicate module\n");
     return -ENOMEM;
   }
+  // macro to go through all currest task (from sched.h)
   for_each_process(task) {
+    // clear the buffer, then concatenate all required fields into buffer
     memset(buffer, 0, sizeof(buffer));
     offset = 0;
     memcpy(buffer, (char*)&(task->state), sizeof(long));
@@ -40,7 +51,7 @@ static ssize_t communicate_read(struct file *file, char *buf, size_t count, loff
     offset = offset + sizeof(long);
     if (task->mm)  memcpy(buffer+offset, (char*)&(task->mm->pgd), sizeof(pgd_t));
    
-    
+    // calculate checksum (assuming little-endian) and print
     crc32_checksum = crc32_le(0, buffer, len);
     printk("%s(%d) - CRC32: 0x%08x\n", task->comm, task->pid, crc32_checksum);
   }
@@ -48,6 +59,7 @@ static ssize_t communicate_read(struct file *file, char *buf, size_t count, loff
   return 0;
 }
 
+// define write operation - simply return "Operation not permmited" error code
 static ssize_t communicate_write(struct file *file, const char *buf, size_t count, loff_t *ppos) {
   printk("Communicate module does not support write operations\n");
   return -EPERM;
@@ -55,6 +67,7 @@ static ssize_t communicate_write(struct file *file, const char *buf, size_t coun
 
 static const struct file_operations communicate_fops = {.read = communicate_read, .write=communicate_write,};
 
+// define module load operation
 static int communicate_start(void) {
   int ret;
   printk("Loading communicate module ... \n");
@@ -66,6 +79,7 @@ static int communicate_start(void) {
   return ret;
 }
 
+// define module unload operation
 static void communicate_end(void) {
   int ret;
   printk("Goodbye\n");
