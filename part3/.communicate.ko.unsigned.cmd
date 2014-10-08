@@ -1,1 +1,0 @@
-cmd_/home/cpsc/CPSC457-Assignment1/part3/communicate.ko.unsigned := ld -r -m elf_i386 -T /usr/src/kernels/2.6.32-431.29.2.el6.i686/scripts/module-common.lds --build-id -o /home/cpsc/CPSC457-Assignment1/part3/communicate.ko.unsigned /home/cpsc/CPSC457-Assignment1/part3/communicate.o /home/cpsc/CPSC457-Assignment1/part3/communicate.mod.o 
