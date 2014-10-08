@@ -1,8 +1,15 @@
+/*
+CPSC 457 Fall2014 HW1 - Part1
+by Xiao Lin
+Reference:
+- snyfer.c (sample code provided by Instructor)
+- http://www.aryweb.nl/2013/05/25/ptrace-timing-analysis-by-disassembling/
+*/
 #define _GNU_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h> //memset, strncmp, strsignal
+#include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/ptrace.h>
@@ -56,6 +63,8 @@ create_interpreter()
   return;
 }
 
+// attaching to a process
+// provided by sample code snyfer.c
 static void
 init_attach(char* tpid)
 {
@@ -67,7 +76,7 @@ init_attach(char* tpid)
   tr_pid = strtol(tpid, NULL, 10);
 
   fprintf(stdout,
-	  "[snyfer] tracing process %ld\n",
+	  "[itrace] tracing process %ld\n",
 	  tr_pid);
 
   p_ret = ptrace(PTRACE_ATTACH,
@@ -77,7 +86,7 @@ init_attach(char* tpid)
   if(-1==p_ret)
   {
     fprintf(stderr,
-	    "[snyfer] failed to attach to child, exiting...\n");
+	    "[itrace] failed to attach to child, exiting...\n");
     exit(-1);
   }
 
@@ -92,6 +101,9 @@ init_attach(char* tpid)
 	    "Successful attach. Child stopped by signal %d : %s\n", 
 	    s,
 	    strsignal(s));
+    fprintf(stdout, "Press [ENTER] to singlestep\n");
+    fprintf(stdout, "Enter 'quit' to stop tracing process\n");
+    fprintf(stdout, "Enter 'kill' to kill process\n");
   }else{
     fprintf(stdout,
 	    "failed to stop / attach target process\n");
@@ -101,16 +113,16 @@ init_attach(char* tpid)
 }
 
 // Function to read and disassemble one instrution after ptrace stopped on singlestep
-// by Xiao Lin
-// reference: http://www.aryweb.nl/2013/05/25/ptrace-timing-analysis-by-disassembling/
+// written by Xiao Lin
 static void handle_singelstep() {
   struct user_regs_struct regfile;
   ptrace(PTRACE_GETREGS, tr_pid, NULL, &regfile);
   unsigned long addr = regfile.eip;
   fprintf(stdout, "Address = 0x%08lx\n", addr);
   // x86 system have instruction length upto 15 bytes, but ptrace only return 4bytes, so this is an approximation
-  unsigned long long data = ptrace(PTRACE_PEEKTEXT, tr_pid, addr, NULL);
-  fprintf(stdout, "Data = 0x%016llx\n", data);
+  unsigned long long data = 0;
+  data = ptrace(PTRACE_PEEKTEXT, tr_pid, addr, NULL);
+  fprintf(stdout, "Data = 0x%08llx\n", data);
   ud_t ud_obj;
   unsigned char buff[8];
   memcpy(buff, (char*)&data, sizeof(long long));
@@ -129,6 +141,8 @@ static void handle_singelstep() {
   return;
 }
 
+// kill traced process
+// provided by sample code snyfer.c
 static void
 kill_trace_session()
 {
@@ -144,6 +158,8 @@ kill_trace_session()
   exit(0);
 }
 
+// stop tracing without killing target process
+// provided by sample code snyfer.c
 static void
 quit()
 {
@@ -160,14 +176,7 @@ quit()
   exit(0);  
 }
 
-/**
-  int* i = 0;
-  int a = 100;
-  int* x = &a;
-  int y = (*x) + 1; 
-  a = 200;
 
- */
 static void
 handle_continue(int* cont)
 {
@@ -176,7 +185,7 @@ handle_continue(int* cont)
   int attach_status = 0;
   int s = 0;
 
-  //continue to the next system call (or end of this one)
+  // stop at every instruction
   p_ret = ptrace(PTRACE_SINGLESTEP,
 		 tr_pid,
 		 NULL,
@@ -226,13 +235,8 @@ handle_continue(int* cont)
   return;
 }
 
-/**
-long 
-ptrace(enum __ptrace_request request, 
-       pid_t pid,
-       void *addr, 
-       void *data) 
- */
+// interpret user command and do action
+// provided by sample code snyfer.c
 static void 
 do_sniff()
 {
@@ -241,7 +245,7 @@ do_sniff()
   do
   {
     fprintf(stdout,
-	    "snyfer> ");
+	    "itrace> ");
     usercmd = fgets(usercmd, LINELEN, stdin);
     if(NULL == usercmd)
     {
@@ -253,12 +257,8 @@ do_sniff()
     if(0==strncmp(usercmd, "quit", 4) ||
        0==strncmp(usercmd, "exit", 4)){
       quit();
-    }else if(0==strncmp(usercmd, "run", 3)){
-      fprintf(stdout, "not implemented\n");
     }else if(0==strncmp(usercmd, "kill", 4)){
       kill_trace_session();
-    }else if(0==strncmp(usercmd, "cont", 4)){
-      handle_continue(&should_continue);
     }else{
       handle_continue(&should_continue); // assume default is cont
     }
@@ -273,7 +273,7 @@ do_sniff()
  *
  * opens an interactive session where you can trace a process single-step
  * the instructions will be disassembled via udis86
- *
+ * provided by sample code snyfer.c
  */
 int main(int argc,
 	 char* argv[])
