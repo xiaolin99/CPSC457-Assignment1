@@ -1,8 +1,0 @@
-HW1 PART1 is 100% completed
-
-Approach:
-I based my work on the sample code "snyfer.c".
-1. "ptrace(PTRACE_SINGLESTEP...)" was used to pause the process at every instruction
-2. "ptrace(GETREGS...)" was used to retrieve instrution address from EIP
-3. "ptrace(PEEKTEXT...)" was used to read the instruction pointed by EIP
-4. The raw instruction was fed into udis86 and disassembled.
