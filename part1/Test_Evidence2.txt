@@ -1,0 +1,109 @@
+%G[8;46;237t[?1034hbash-4.1$ cat ./test.asm 
+section .text
+global _start
+_start:
+loop_start:
+	xor eax, eax
+	xor ebx, ebx
+	inc ebx
+	inc eax
+	nop
+	nop
+	add eax, 0x10
+	sub eax, 0x10
+	imul eax, ebx, 0x2
+	neg ebx
+	jmp loop_start 
+bash-4.1$ ps auxf | grep test.x
+cpsc     27616 99.2  0.0     96    12 pts/1    R+   08:28   0:25  |   \_ ./test.x
+cpsc     27621  0.0  0.0   4356   744 pts/3    S+   08:28   0:00              \_ grep test.x
+bash-4.1$ ./itrace -p 27616
+[itrace] tracing process 27616
+Successful attach. Child stopped by signal 19 : Stopped (signal)
+Press [ENTER] to singlestep
+Enter 'quit' to stop tracing process
+Enter 'kill' to kill process
+itrace> 
+stopped by signal 5 : Trace/breakpoint trap
+Address = 0x08048062
+Data = 0x4043db31
+Disassemble:  31db  xor ebx, ebx
+itrace> 
+stopped by signal 5 : Trace/breakpoint trap
+Address = 0x08048064
+Data = 0xffffffff90904043
+Disassemble:  43  inc ebx
+itrace> 
+stopped by signal 5 : Trace/breakpoint trap
+Address = 0x08048065
+Data = 0x05909040
+Disassemble:  40  inc eax
+itrace> 
+stopped by signal 5 : Trace/breakpoint trap
+Address = 0x08048066
+Data = 0x10059090
+Disassemble:  90  nop
+itrace> 
+stopped by signal 5 : Trace/breakpoint trap
+Address = 0x08048067
+Data = 0x00100590
+Disassemble:  90  nop
+itrace> 
+stopped by signal 5 : Trace/breakpoint trap
+Address = 0x08048068
+Data = 0x00001005
+Disassemble:  0510000000  add eax, 0x10
+itrace> 
+stopped by signal 5 : Trace/breakpoint trap
+Address = 0x0804806d
+Data = 0x0000102d
+Disassemble:  2d10000000  sub eax, 0x10
+itrace> 
+stopped by signal 5 : Trace/breakpoint trap
+Address = 0x08048072
+Data = 0x0002c369
+Disassemble:  69c302000000  imul eax, ebx, 0x2
+itrace> 
+stopped by signal 5 : Trace/breakpoint trap
+Address = 0x08048078
+Data = 0xffffffffe1e9dbf7
+Disassemble:  f7db  neg ebx
+itrace> 
+stopped by signal 5 : Trace/breakpoint trap
+Address = 0x0804807a
+Data = 0xffffffffffffe1e9
+Disassemble:  e9e1ffffff  jmp 0xffffffe6
+itrace> 
+stopped by signal 5 : Trace/breakpoint trap
+Address = 0x08048060
+Data = 0xffffffffdb31c031
+Disassemble:  31c0  xor eax, eax
+itrace> 
+stopped by signal 5 : Trace/breakpoint trap
+Address = 0x08048062
+Data = 0x4043db31
+Disassemble:  31db  xor ebx, ebx
+itrace> 
+stopped by signal 5 : Trace/breakpoint trap
+Address = 0x08048064
+Data = 0xffffffff90904043
+Disassemble:  43  inc ebx
+itrace> 
+stopped by signal 5 : Trace/breakpoint trap
+Address = 0x08048065
+Data = 0x05909040
+Disassemble:  40  inc eax
+itrace> 
+stopped by signal 5 : Trace/breakpoint trap
+Address = 0x08048066
+Data = 0x10059090
+Disassemble:  90  nop
+itrace> 
+stopped by signal 5 : Trace/breakpoint trap
+Address = 0x08048067
+Data = 0x00100590
+Disassemble:  90  nop
+itrace> kill
+killing child and exiting...
+bash-4.1$ exit
+exit

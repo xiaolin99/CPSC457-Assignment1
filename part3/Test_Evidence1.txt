@@ -1,0 +1,2 @@
+I would remove "state" to make a more stable CRC32 checksum.
+Because it is the only field that's defined as "volatile", which means it is expected to change quickly and frequently.
