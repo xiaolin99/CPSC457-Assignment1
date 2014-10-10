@@ -1,0 +1,17 @@
+HW1 PART3 is 100% compleate
+
+Approach:
+My work is based on the sample code provided by TA
+0. The code to create/destroy device was taken from the TA's sample code
+When the device was read:
+1. Macro "for_each_process(p)" (from sched.h) was used to iterate through every process
+2. In each iteration, all the required fields are concatenated into a single large buffer
+3. Function "crc32_le()" (from crc32.h) was used to calculate CRC32 checksum of that buffer
+When the device was written to:
+4. On write require, simply return error code "-EPERM" (-1 Operation not permmited)
+
+
+Answers to non-programming questions:
+
+I would remove "state" to make a more stable CRC32 checksum.
+Because it is the only field that's defined as "volatile", which means it is expected to change quickly and frequently.
