@@ -10,6 +10,6 @@ loop_start:
 	nop
 	add eax, 0x10
 	sub eax, 0x10
-	imul eax, ebx, 0x2
+	imul eax, ebx, 0x11223344
 	neg ebx
 	jmp loop_start 

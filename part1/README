@@ -1,15 +1,5 @@
 HW1 PART1 is 100% completed
 
-Even though the code meets the problem's requirements, I expect it will not work for all instructions. 
-The reason is: 
-ptrace(2) specifies when reading instructions using PEEKTEXT, the instruction was the return value of ptrace. However, ptrace returns a "long" value, which is 4Bytes on a 32bit system.
-Intel x86 specifies instruction can have a length of up to 15 bytes, and some instructions can exceed this limit by using prefixes, so this means instructions longer than 4Bytes cannot be completely retrieved using ptrace.
-To "guess" how many bytes an instruction has requires complex logic, therefore, I have my program to pad the 4Byte instruction from ptrace() with zeros to 8Bytes, and ask udis86 to interpret these 8Bytes to the best of its knownledge and I expect this to work with most instructions.
-An example:
-"imul eax, ebx, 0x2" is a 6Byte instruction
-itrace will read 0x0002c369 and cast it to 0x000000000002c369. 
-udis86 will correctly disassemble this to the original instruction.
-
 
 Approach:
 I based my work on the sample code "snyfer.c".
@@ -17,4 +7,7 @@ I based my work on the sample code "snyfer.c".
 1. "ptrace(PTRACE_SINGLESTEP...)" was used to pause the process at every instruction
 2. "ptrace(GETREGS...)" was used to retrieve instrution address from EIP
 3. "ptrace(PEEKTEXT...)" was used to read the instruction pointed by EIP
-4. The raw instruction was cast to 8Bytes fed into udis86 and disassembled.
+4. Pass the 4-byte data to udis86 and have it disassembled
+5. udis86 will guess instruction length from the first 4-byte data
+6. If instruction length is greater than 4-byte, retrieve the additional bytes via "ptrace(PEEKTEXT...eip+4...)"
+7. have udis86 disassemble again

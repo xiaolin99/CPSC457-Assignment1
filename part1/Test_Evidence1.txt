@@ -1,62 +1,90 @@
 %G[8;46;237t[?1034hbash-4.1$ ps auxf | grep yes
-cpsc     27609 13.2  0.0   4064   504 pts/1    S+   08:26   0:03  |   \_ yes
-cpsc     27613  0.0  0.0   4356   740 pts/3    S+   08:27   0:00              \_ grep yes
-bash-4.1$ ./itrace -p 27609
-[itrace] tracing process 27609
+cpsc     29738 13.5  0.0   4064   500 pts/3    S+   11:18   0:03  |   \_ yes
+cpsc     29745  0.0  0.0   4356   736 pts/5    S+   11:18   0:00              \_ grep yes
+bash-4.1$ ./itrace -p 29738
+[itrace] tracing process 29738
 Successful attach. Child stopped by signal 19 : Stopped (signal)
 Press [ENTER] to singlestep
 Enter 'quit' to stop tracing process
 Enter 'kill' to kill process
 itrace> 
 stopped by signal 5 : Trace/breakpoint trap
-Address = 0x007d4417
+Address = 0x0039f417
 Data = 0x340fe589
+Instruction length = 2 Bytes
 Disassemble:  89e5  mov ebp, esp
 itrace> 
 stopped by signal 5 : Trace/breakpoint trap
-Address = 0x007d4419
-Data = 0xffffffff9090340f
+Address = 0x0039f419
+Data = 0x9090340f
+Instruction length = 2 Bytes
 Disassemble:  0f34  sysenter
 itrace> 
 stopped by signal 5 : Trace/breakpoint trap
-Address = 0x007d4424
-Data = 0xffffffffc3595a5d
+Address = 0x0039f424
+Data = 0xc3595a5d
+Instruction length = 1 Bytes
 Disassemble:  5d  pop ebp
 itrace> 
 stopped by signal 5 : Trace/breakpoint trap
-Address = 0x007d4425
+Address = 0x0039f425
 Data = 0x00c3595a
+Instruction length = 1 Bytes
 Disassemble:  5a  pop edx
 itrace> 
 stopped by signal 5 : Trace/breakpoint trap
-Address = 0x007d4426
+Address = 0x0039f426
 Data = 0x2e00c359
+Instruction length = 1 Bytes
 Disassemble:  59  pop ecx
 itrace> 
 stopped by signal 5 : Trace/breakpoint trap
-Address = 0x007d4427
+Address = 0x0039f427
 Data = 0x732e00c3
+Instruction length = 1 Bytes
 Disassemble:  c3  ret
 itrace> 
 stopped by signal 5 : Trace/breakpoint trap
-Address = 0x0020a6a3
-Data = 0xfffffffff0013d5b
+Address = 0x005786a3
+Data = 0xf0013d5b
+Instruction length = 1 Bytes
 Disassemble:  5b  pop ebx
 itrace> 
 stopped by signal 5 : Trace/breakpoint trap
-Address = 0x0020a6a4
-Data = 0xfffffffffff0013d
+Address = 0x005786a4
+Data = 0xfff0013d
+Instruction length = 5 Bytes
 Disassemble:  3d01f0ffff  cmp eax, 0xfffff001
 itrace> 
 stopped by signal 5 : Trace/breakpoint trap
-Address = 0x0020a6a9
-Data = 0xffffffffe8c33273
+Address = 0x005786a9
+Data = 0xe8c33273
+Instruction length = 2 Bytes
 Disassemble:  7332  jae 0x34
 itrace> 
 stopped by signal 5 : Trace/breakpoint trap
-Address = 0x0020a6ab
+Address = 0x005786ab
 Data = 0x045fe8c3
+Instruction length = 1 Bytes
 Disassemble:  c3  ret
+itrace> 
+stopped by signal 5 : Trace/breakpoint trap
+Address = 0x00512214
+Data = 0x85ec558b
+Instruction length = 3 Bytes
+Disassemble:  8b55ec  mov edx, [ebp-0x14]
+itrace> 
+stopped by signal 5 : Trace/breakpoint trap
+Address = 0x00512217
+Data = 0xd579c085
+Instruction length = 2 Bytes
+Disassemble:  85c0  test eax, eax
+itrace> 
+stopped by signal 5 : Trace/breakpoint trap
+Address = 0x00512219
+Data = 0x458bd579
+Instruction length = 2 Bytes
+Disassemble:  79d5  jns 0xffffffd7
 itrace> kill
 killing child and exiting...
 bash-4.1$ exit

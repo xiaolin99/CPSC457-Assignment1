@@ -119,21 +119,35 @@ static void handle_singelstep() {
   ptrace(PTRACE_GETREGS, tr_pid, NULL, &regfile);
   unsigned long addr = regfile.eip;
   fprintf(stdout, "Address = 0x%08lx\n", addr);
-  // x86 system have instruction length upto 15 bytes, but ptrace only return 4bytes, so this is an approximation
-  unsigned long long data = 0;
+  unsigned long data = 0;
   data = ptrace(PTRACE_PEEKTEXT, tr_pid, addr, NULL);
-  fprintf(stdout, "Data = 0x%08llx\n", data);
+  fprintf(stdout, "Data = 0x%08lx\n", data);
   ud_t ud_obj;
-  unsigned char buff[8];
-  memcpy(buff, (char*)&data, sizeof(long long));
+  unsigned char buff[15];
+  memcpy(buff, (char*)&data, sizeof(long));
 
   // setup udis86
   ud_init(&ud_obj);
   ud_set_mode(&ud_obj, 32);
   ud_set_syntax(&ud_obj, UD_SYN_INTEL);
-  ud_set_input_buffer(&ud_obj, buff, 8);
+  ud_set_input_buffer(&ud_obj, buff, 15);
+  // disassemble and have udis86 guess instruction length
+  ud_disassemble(&ud_obj);
+  unsigned int instr_len = ud_insn_len(&ud_obj);
+  fprintf(stdout, "Instruction length = %d Bytes\n", instr_len);
+  // get more byte via ptrace if intruction length > 4bytes
+  int i = 4;
+  while (i < instr_len) {
+    data = ptrace(PTRACE_PEEKTEXT, tr_pid, addr+i, NULL);
+    memcpy(buff+i, (char*)&data, sizeof(long));
+    i = i + 4;
+  }
 
-  // disassemble and print
+  // disassemble second time and print
+  ud_init(&ud_obj);
+  ud_set_mode(&ud_obj, 32);
+  ud_set_syntax(&ud_obj, UD_SYN_INTEL);
+  ud_set_input_buffer(&ud_obj, buff, 15);
   if (ud_disassemble(&ud_obj) != 0) {
     printf("Disassemble:  %s  %s\n", ud_insn_hex(&ud_obj), ud_insn_asm(&ud_obj));
   }
